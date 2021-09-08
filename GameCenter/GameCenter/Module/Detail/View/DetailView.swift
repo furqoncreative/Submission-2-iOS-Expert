@@ -7,106 +7,53 @@
 
 import SwiftUI
 import SDWebImageSwiftUI
+import Game
+import Core
 
 struct DetailView: View {
-    @ObservedObject var presenter: DetailPresenter
-    let gameId: Int
+    @State private var showingAlert = false
+    
+    @ObservedObject var presenter: GamePresenter<
+        Interactor<Int, GameModel, GetGameRepository<GetGamesLocaleDataSource, GetGameRemoteDataSource, GameMapper>>,
+        Interactor<Int, GameModel, UpdateFavoriteGameRepository<GetFavoriteGamesLocaleDataSource, GameMapper>>>
+    
+    var game: GameModel
     
     var body: some View {
         
         ZStack {
             ColorManager.backgroundColor.ignoresSafeArea(edges: .all)
             Group {
-                if presenter.loadingState {
-                    VStack {
-                        VStack(spacing: 16.0) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                            Text("Loading...")
-                        }
-                    }
+                if presenter.isLoading {
+                    loadingIndicator
+                } else
+                if presenter.isError {
+                    errorIndicator
                 } else {
-                    ScrollView(/*@START_MENU_TOKEN@*/.vertical/*@END_MENU_TOKEN@*/, showsIndicators: true, content: {
-                        WebImage(url: URL(string: presenter.game?.backgroundImage ?? ""))
-                            .resizable()
-                            .frame(height: 350)
-                            .modifier(ImageDetailModifier())
-                        
-                        VStack(alignment: .leading) {
-                            HStack(spacing: 2) {
-                                Text("\(String(format: "%.2f", presenter.game?.rating ?? 0.0))")
-                                    .font(.system(size: 12, weight: .bold, design: .default))
-                                    .foregroundColor(ColorManager.primaryTextColor)
-                                
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(ColorManager.primaryColor)
-                                
-                            }
-                            .fixedSize(horizontal: false, vertical: true)
-                            .multilineTextAlignment(.center)
-                            .padding(.all, 4)
-                            .frame(width: 70, height: 30)
-                            .background(Rectangle().fill(ColorManager.accentColor).cornerRadius(20))
-                            
-                            Text(presenter.game?.name ?? "Null")
-                                .font(.system(size: 24, weight: .bold, design: .default))
-                                .foregroundColor(ColorManager.primaryTextColor)
-                            
-                            Text(presenter.game?.released ?? "Null")
-                                .font(.system(size: 12, weight: .regular, design: .default))
-                                .foregroundColor(ColorManager.secondaryTextColor)
-                                .padding(.top, 1)
-                            
-                            LazyHStack {
-                                if let genres = presenter.game?.genres {
-                                    if !genres.isEmpty {
-                                        ScrollView(.horizontal) {
-                                            HStack {
-                                                ForEach(genres) { genre in
-                                                    GenreView(genre: genre.name ?? "Uknown")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }.frame(height: 25)
-                            
-                            Text(presenter.game?.description ?? "Null")
-                                .font(.system(size: 14, weight: .light, design: .default))
-                            
-                        }
-                        .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
-                        .frame(
-                            minWidth: 0,
-                            maxWidth: .infinity,
-                            minHeight: 0,
-                            maxHeight: .infinity,
-                            alignment: .topLeading
-                        )
-                        
-                    })
-                    
-                    .ignoresSafeArea(edges: .all)
-                    .background(ColorManager.backgroundColor)
+                   content
                 }
             }
             .onAppear {
-                self.presenter.isFavorite(gameId: gameId)
-                if self.presenter.game == nil {
-                    self.presenter.getGames(gameId: gameId)
+                if self.presenter.item == nil {
+                    self.presenter.getGame(request: game.id)
                 }
+            }.alert(isPresented: $showingAlert) {
+                Alert(
+                    title: Text("Oops!"),
+                    message: Text("Something wrong!"),
+                    dismissButton: .default(Text("OK"))
+                )
             }
         }
         .navigationBarItems(trailing: Group {
-            self.presenter.favoriteState ? Button(action: {
-                updateFavoriteGame(isFavorite: false)
+            self.presenter.item?.favorite == true ? Button(action: {
+                self.presenter.updateFavoriteGame(request: game.id)
             }, label: {
                 Image(systemName: "heart.fill")
                     .font(.title)
                     .foregroundColor(ColorManager.accentColor)
             }) : Button(action: {
-                updateFavoriteGame(isFavorite: true)
+                self.presenter.updateFavoriteGame(request: game.id)
             }, label: {
                 Image(systemName: "heart")
                     .font(.title)
@@ -116,10 +63,6 @@ struct DetailView: View {
         )
     }
     
-    func updateFavoriteGame(isFavorite: Bool) {
-        let game = GameMapper.mapGameDomainToEntity(input: presenter.game, favoriteSate: isFavorite)
-        self.presenter.updateFavoriteGame(game: game)
-    }
 }
 
 struct GenreView: View {
@@ -133,4 +76,89 @@ struct GenreView: View {
             .frame(maxWidth: 65, maxHeight: 25)
             .background(Rectangle().fill(ColorManager.primaryColor).cornerRadius(20))
     }
+}
+
+
+extension DetailView {
+    var loadingIndicator: some View {
+        VStack {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle())
+            Text("Loading...")
+        }
+    }
+    
+    var errorIndicator: some View {
+        CustomEmptyView(
+            image: "assetSearchNotFound",
+            title: presenter.errorMessage
+        ).offset(y: 80)
+    }
+    
+    var content: some View {
+        ScrollView(/*@START_MENU_TOKEN@*/.vertical/*@END_MENU_TOKEN@*/, showsIndicators: true, content: {
+            WebImage(url: URL(string: presenter.item?.backgroundImage ?? ""))
+                .resizable()
+                .frame(height: 350)
+                .modifier(ImageDetailModifier())
+            
+            VStack(alignment: .leading) {
+                HStack(spacing: 2) {
+                    Text("\(String(format: "%.2f", presenter.item?.rating ?? 0.0))")
+                        .font(.system(size: 12, weight: .bold, design: .default))
+                        .foregroundColor(ColorManager.primaryTextColor)
+                    
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(ColorManager.primaryColor)
+                    
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.center)
+                .padding(.all, 4)
+                .frame(width: 70, height: 30)
+                .background(Rectangle().fill(ColorManager.accentColor).cornerRadius(20))
+                
+                Text(presenter.item?.name ?? "")
+                    .font(.system(size: 24, weight: .bold, design: .default))
+                    .foregroundColor(ColorManager.primaryTextColor)
+                
+                Text(presenter.item?.released ?? "")
+                    .font(.system(size: 12, weight: .regular, design: .default))
+                    .foregroundColor(ColorManager.secondaryTextColor)
+                    .padding(.top, 1)
+                
+                LazyHStack {
+                    if let genres = presenter.item?.genres {
+                        if !genres.isEmpty {
+                            ScrollView(.horizontal) {
+                                HStack {
+                                    ForEach(genres) { genre in
+                                        GenreView(genre: genre.name ?? "Uknown")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }.frame(height: 25)
+                
+                Text(presenter.item?.description ?? "")
+                    .font(.system(size: 14, weight: .light, design: .default))
+                
+            }
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+            .frame(
+                minWidth: 0,
+                maxWidth: .infinity,
+                minHeight: 0,
+                maxHeight: .infinity,
+                alignment: .topLeading
+            )
+            
+        })
+        .ignoresSafeArea(edges: .all)
+        .background(ColorManager.backgroundColor)
+    }
+    
+    
 }

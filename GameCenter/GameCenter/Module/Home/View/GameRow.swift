@@ -7,6 +7,8 @@
 
 import SwiftUI
 import SDWebImageSwiftUI
+import Core
+import Game
 
 struct GameRow: View {
     var game: GameModel
@@ -18,7 +20,7 @@ struct GameRow: View {
         
         VStack(alignment: .leading) {
 
-            WebImage(url: URL(string: game.backgroundImage ?? ""))
+            WebImage(url: URL(string: game.backgroundImage))
                 .resizable()
                 .frame(width: screenWidth/2-16, height: screenHeight/5, alignment: .top)
 
