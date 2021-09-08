@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/realm/realm-cocoa",
         "state": {
           "branch": null,
-          "revision": "7a3e25994d4d917efe30fa4496775d3f024b71b6",
-          "version": "10.13.0"
+          "revision": "e7e7f072a1571435049683ca43c51501de2612fd",
+          "version": "10.14.0"
         }
       },
       {
@@ -24,13 +24,13 @@
         "repositoryURL": "https://github.com/realm/realm-core",
         "state": {
           "branch": null,
-          "revision": "9a7d09994e85b7eda8e3553b444bcfef6ec3f9ea",
-          "version": "11.3.0"
+          "revision": "fdb2157346dcdf0c2677b3608d9a4c30315fa7f0",
+          "version": "11.3.1"
         }
       },
       {
         "package": "SDWebImage",
-        "repositoryURL": "https://github.com/SDWebImage/SDWebImage.git",
+        "repositoryURL": "https://github.com/SDWebImage/SDWebImage",
         "state": {
           "branch": null,
           "revision": "76dd4b49110b8624317fc128e7fa0d8a252018bc",

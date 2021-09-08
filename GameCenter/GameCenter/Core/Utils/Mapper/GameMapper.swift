@@ -30,7 +30,6 @@ final class GameMapper {
         input gameEntities: [GameEntity]
     ) -> [GameModel] {
         return gameEntities.map { result in
-            
             let genres = result.genres.split(separator: ",").map {
                 return GenreModel(id: $0.startIndex, name: String($0))
             }

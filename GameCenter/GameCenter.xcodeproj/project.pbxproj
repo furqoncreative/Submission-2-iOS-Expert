@@ -453,6 +453,7 @@
 				7A80569926DDCA7F00E67C74 /* XCRemoteSwiftPackageReference "realm-cocoa" */,
 				7A80569E26DDCAE200E67C74 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				7A8056B126DDE61D00E67C74 /* XCRemoteSwiftPackageReference "SwiftUIX" */,
+				7AC89ED326E6118000B92C69 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 			);
 			productRefGroup = 7A5773F526D4FA6D00948B96 /* Products */;
 			projectDirPath = "";
@@ -747,6 +748,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.0.8;
+			};
+		};
+		7AC89ED326E6118000B92C69 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.11.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
